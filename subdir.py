@@ -13,14 +13,35 @@ def percorrer_subdiretorios(root_dir):
             subdirs.append(subdir_path)
     return subdirs
 
-def search_dir(dir, output, registers, singlegraph):
+def search_dir(dir, output, registers, singlegraph, fitness):
     results = []
     for file_name in os.listdir(dir):
         if file_name.endswith(".json"):
             input_file_name = os.path.join(dir, file_name)
-            result = linearScan(input_file_name, registers, singlegraph)
-            if result is not None:
-                results.append(result)
+            print(file_name)
+
+            graphs = ler_arquivo_json(input_file_name)
+            if singlegraph:
+                graphs = {1 : graphs}
+
+            for graph_name in graphs:
+                graph = graphs[graph_name]
+                result = linearScan(graph, registers, fitness)
+                if result is not None:
+                    results.append(result)
+
     with open(output, 'w') as outputFile:
         json.dump(results, outputFile, indent=4)
+
+def ler_arquivo_json(nome_arquivo):
+    try:
+        with open(nome_arquivo, 'r') as arquivo:
+            dados = json.load(arquivo)
+            return dados
+    except FileNotFoundError:
+        print(f"O arquivo '{nome_arquivo}' não foi encontrado.")
+        return {}
+    except json.JSONDecodeError:
+        print(f"O arquivo '{nome_arquivo}' não é um JSON válido.")
+        return {}
             

@@ -5,13 +5,14 @@ from subdir import percorrer_subdiretorios, search_dir
 
 @click.command()
 @click.option('--dir', '-d', default="", help='Path to directory with .ll input files.')
-@click.option('--output', '-o', default="", help='Path to output file.')
+@click.option('--output', '-o', default="log.txt", help='Path to output file.')
 @click.option('--registers', '-r', default=8, help='Number of registers.')
+@click.option('--fitness', '-f', is_flag=True, help='Display metric in results (f = 1 - spillCost/totalSpillCost).')
 @click.option('--subdirectorys', '-s', is_flag=True, default=False, help='Iterate all subdirectories and search for .ll files.')
 @click.option('--clear', '-c', is_flag=True, default=False, help='Remove files in output directory.')
 @click.option('--singlegraph', '-g', is_flag=True, default=False, help='Only a single graph each file.')
 
-def cli(dir, output, registers, subdirectorys, clear, singlegraph):
+def cli(dir, output, registers, fitness, subdirectorys, clear, singlegraph):
     if dir == "":
         dir = os.getcwd()
     
@@ -32,13 +33,10 @@ def cli(dir, output, registers, subdirectorys, clear, singlegraph):
                 elif os.path.isdir(item_path):
                     shutil.rmtree(item_path)
 
-    if not os.path.exists(output):
-        os.makedirs(output)
-
     output_dir = os.path.dirname(output)
 
     # Verificar se o diretório existe
-    if not os.path.exists(output_dir):
+    if output_dir != "" and not os.path.exists(output_dir):
         try:
             # Criar o diretório se não existir
             os.makedirs(output_dir)
@@ -51,8 +49,8 @@ def cli(dir, output, registers, subdirectorys, clear, singlegraph):
 
         # loop para executar o comando com cada subdiretório como argumento
         for subdir in subdirs:
-            search_dir(subdir, output, registers, singlegraph)
-    search_dir(dir, output, registers, singlegraph)
+            search_dir(subdir, output, registers, singlegraph, fitness)
+    search_dir(dir, output, registers, singlegraph, fitness)
 
 
 
