@@ -28,7 +28,11 @@ def cli(path, output, individual, registers, fitness, subdirectorys, clear, sing
         if individual:
             output_dir = output
         else:
-            output_dir = os.path.dirname(output)
+            if os.path.isdir(output):
+                output_dir = output
+                output = os.path.join(output, "log.json")
+            else:
+                output_dir = os.path.dirname(output)
         if not os.path.exists(output_dir): 
             try:
                 # Criar o diretório se não existir
