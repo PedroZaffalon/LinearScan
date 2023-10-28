@@ -27,10 +27,7 @@ def search_dir(dir, output, registers, singlegraph, individual, fitness):
                     json.dump(result, outputFile, indent=4)
             else:
                 results += result
-
-    if not individual:
-        with open(output, 'w') as outputFile:
-            json.dump(results, outputFile, indent=4)
+    return results
                         
 def allocateFile(path, registers, singlegraph, fitness):
     results = []

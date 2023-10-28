@@ -64,14 +64,19 @@ def cli(path, output, individual, registers, fitness, subdirectorys, clear, sing
             with open(outputPath, 'w') as outputFile:
                 json.dump(result, outputFile, indent=4)
     else:
+        results = []
         if subdirectorys:
             # chama a função para percorrer todos os subdiretórios e salvar os caminhos em uma lista
             subdirs = percorrer_subdiretorios(path)
 
             # loop para executar o comando com cada subdiretório como argumento
             for subdir in subdirs:
-                search_dir(subdir, output, registers, singlegraph, individual, fitness)
-        search_dir(path, output, registers, singlegraph, individual, fitness)
+                print(subdir)
+                results += search_dir(subdir, output, registers, singlegraph, individual, fitness)
+        results += search_dir(path, output, registers, singlegraph, individual, fitness)
+        if not individual:
+            with open(output, 'w') as outputFile:
+                json.dump(results, outputFile, indent=4)
 
 
 
