@@ -13,25 +13,39 @@ def percorrer_subdiretorios(root_dir):
             subdirs.append(subdir_path)
     return subdirs
 
-def search_dir(dir, output, registers, singlegraph, fitness):
+def search_dir(dir, output, registers, singlegraph, individual, fitness):
     results = []
     for file_name in os.listdir(dir):
         if file_name.endswith(".json"):
             input_file_name = os.path.join(dir, file_name)
             print(file_name)
+            result = allocateFile(input_file_name, registers, singlegraph, fitness)
+            if individual:
+                outputFileName = file_name[:-5] + "_results.json"
+                outputPath = os.path.join(output, outputFileName)
+                with open(outputPath, 'w') as outputFile:
+                    json.dump(result, outputFile, indent=4)
+            else:
+                results += result
 
-            graphs = ler_arquivo_json(input_file_name)
-            if singlegraph:
-                graphs = {1 : graphs}
-
-            for graph_name in graphs:
-                graph = graphs[graph_name]
-                result = linearScan(graph, registers, fitness)
-                if result is not None:
-                    results.append(result)
-
-    with open(output, 'w') as outputFile:
-        json.dump(results, outputFile, indent=4)
+    if not individual:
+        with open(output, 'w') as outputFile:
+            json.dump(results, outputFile, indent=4)
+                        
+def allocateFile(path, registers, singlegraph, fitness):
+    results = []
+    graphs = ler_arquivo_json(path)
+    if singlegraph:
+        graphs = {1 : graphs}
+    for graph_name in graphs:
+        graph = graphs[graph_name]
+        result = linearScan(graph, registers, fitness)
+        if result is not None:
+            results.append(result)
+    return results
+                
+        
+    
 
 def ler_arquivo_json(nome_arquivo):
     try:

@@ -1,24 +1,40 @@
 import click
 import os
 import shutil
-from subdir import percorrer_subdiretorios, search_dir
+import json
+from subdir import percorrer_subdiretorios, search_dir, allocateFile
 
 @click.command()
-@click.option('--dir', '-d', default="", help='Path to directory with .ll input files.')
-@click.option('--output', '-o', default="log.txt", help='Path to output file.')
+@click.option('--path', '-p', default="", help='Path to directory with .ll input files.')
+@click.option('--output', '-o', default="", help='Path to output file/directory.')
+@click.option('--individual', '-i', is_flag=True, help='Generate one output file for each input file')
 @click.option('--registers', '-r', default=8, help='Number of registers.')
 @click.option('--fitness', '-f', is_flag=True, help='Display metric in results (f = 1 - spillCost/totalSpillCost).')
 @click.option('--subdirectorys', '-s', is_flag=True, default=False, help='Iterate all subdirectories and search for .ll files.')
 @click.option('--clear', '-c', is_flag=True, default=False, help='Remove files in output directory.')
 @click.option('--singlegraph', '-g', is_flag=True, default=False, help='Only a single graph each file.')
 
-def cli(dir, output, registers, fitness, subdirectorys, clear, singlegraph):
-    if dir == "":
-        dir = os.getcwd()
-    
+def cli(path, output, individual, registers, fitness, subdirectorys, clear, singlegraph):
+    if path == "":
+        path = os.getcwd()
+
     if output == "":
-        output = dir
+        if individual:
+            output = os.getcwd()
+        else: 
+           output = "log.json"
         clear = False
+    else:
+        if individual:
+            output_dir = output
+        else:
+            output_dir = os.path.dirname(output)
+        if not os.path.exists(output_dir): 
+            try:
+                # Criar o diretório se não existir
+                os.makedirs(output_dir)
+            except OSError as e:
+                print(f"Erro ao criar o diretório '{output_dir}': {e}")
 
     if clear:
         if os.path.exists(output):
@@ -33,24 +49,25 @@ def cli(dir, output, registers, fitness, subdirectorys, clear, singlegraph):
                 elif os.path.isdir(item_path):
                     shutil.rmtree(item_path)
 
-    output_dir = os.path.dirname(output)
-
+    
     # Verificar se o diretório existe
-    if output_dir != "" and not os.path.exists(output_dir):
-        try:
-            # Criar o diretório se não existir
-            os.makedirs(output_dir)
-        except OSError as e:
-            print(f"Erro ao criar o diretório '{output_dir}': {e}")
+        
+    if os.path.isfile(path) and path.endswith(".json"):
+        result = allocateFile(path, registers, singlegraph, fitness)
+        if len(result) > 0:
+            outputFileName = os.path.basename(path)[:-5] + "_results.json"
+            outputPath = os.path.join(output, outputFileName)
+            with open(outputPath, 'w') as outputFile:
+                json.dump(result, outputFile, indent=4)
+    else:
+        if subdirectorys:
+            # chama a função para percorrer todos os subdiretórios e salvar os caminhos em uma lista
+            subdirs = percorrer_subdiretorios(path)
 
-    if subdirectorys:
-        # chama a função para percorrer todos os subdiretórios e salvar os caminhos em uma lista
-        subdirs = percorrer_subdiretorios(dir)
-
-        # loop para executar o comando com cada subdiretório como argumento
-        for subdir in subdirs:
-            search_dir(subdir, output, registers, singlegraph, fitness)
-    search_dir(dir, output, registers, singlegraph, fitness)
+            # loop para executar o comando com cada subdiretório como argumento
+            for subdir in subdirs:
+                search_dir(subdir, output, registers, singlegraph, individual, fitness)
+        search_dir(path, output, registers, singlegraph, individual, fitness)
 
 
 
