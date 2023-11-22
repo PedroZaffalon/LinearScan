@@ -16,14 +16,22 @@ def linearScan(graph, registers, fitness):
                 if node["reg"] != -1:
                     freeRegisters[node["reg"] - 1] = True
         if len(actives) == registers:
-            node["reg"] == -1
+            cost = node["spillCost"]
+            spillNode = node_name
+            for node_name2 in actives:
+                cost2 = liveRanges[node_name2]["spillCost"]
+                if cost2 < cost:
+                    cost = cost2
+                    spillNode = node_name2
+            liveRanges[spillNode]["reg"] == -1
             result["validColors"] -= 1
-            result["spillCost"] += node["spillCost"]
+            result["spillCost"] += cost
         else:
             for i in range(registers):
                 if freeRegisters[i]:
                     freeRegisters[i] = False
                     node["reg"] = i + 1
+                    break
             actives.append(node_name)
     if fitness:
         result["fitness"] = 1 - result["spillCost"]/totalSpill
